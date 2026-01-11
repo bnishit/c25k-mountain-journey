@@ -9,6 +9,7 @@ import { ActiveRun } from './components/ActiveRun'
 import { Schedule } from './components/Schedule'
 import { History } from './components/History'
 import { Journey } from './components/Journey'
+import { Settings } from './components/Settings'
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -57,7 +58,7 @@ function App() {
             exit="exit"
             transition={{ duration: 0.25, ease: 'easeOut' }}
           >
-            <TodayWorkout state={state} onStartRun={handleStartRun} />
+            <TodayWorkout state={state} onStartRun={handleStartRun} onSettings={() => setView('settings')} />
           </motion.div>
         )}
 
@@ -115,6 +116,19 @@ function App() {
             transition={{ duration: 0.25, ease: 'easeOut' }}
           >
             <Journey state={state} />
+          </motion.div>
+        )}
+
+        {view === 'settings' && (
+          <motion.div
+            key="settings"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          >
+            <Settings onClose={() => setView('today')} />
           </motion.div>
         )}
       </AnimatePresence>

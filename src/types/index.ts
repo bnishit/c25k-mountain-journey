@@ -26,4 +26,4 @@ export interface AppState {
   startDate: string | null // ISO date string when program started
 }
 
-export type View = 'today' | 'schedule' | 'history' | 'run' | 'journey'
+export type View = 'today' | 'schedule' | 'history' | 'run' | 'journey' | 'settings'
