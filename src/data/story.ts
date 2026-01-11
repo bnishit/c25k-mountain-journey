@@ -196,39 +196,39 @@ export function getProjectedSummitDate(week: number, day: number): string {
   return summitDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-// Journey-themed voice phrases
+// Journey-themed voice phrases - kept short for natural TTS
 export const VOICE_PHRASES = {
   run: [
-    "Time to climb. Start running.",
-    "Push forward. You've got this.",
-    "Ascend. Run now.",
-    "The summit calls. Start running.",
-    "Climb higher. Run.",
+    "Let's go! Start running.",
+    "Run time. You got this.",
+    "Time to run!",
+    "Here we go. Run!",
+    "Push it. Start running.",
   ],
   walk: [
-    "Good work. Rest your legs.",
-    "Recover. Walking now.",
-    "You've earned this rest.",
-    "Catch your breath. Keep moving.",
-    "Rest your legs. Good job.",
+    "Nice work! Walk it out.",
+    "Good job. Walking now.",
+    "Great effort! Rest up.",
+    "Well done. Catch your breath.",
+    "Awesome! Time to walk.",
   ],
   warmup: [
-    "Let's begin the climb. Start walking.",
-    "Warm up your legs. The ascent awaits.",
+    "Let's warm up. Start walking.",
+    "Warm up time. Easy pace.",
   ],
   cooldown: [
-    "Cool down. You've earned this.",
-    "Walk it out. Great climb today.",
+    "Cool down. Great workout!",
+    "Walk it off. You did amazing.",
   ],
   halfway: [
-    "Halfway there. Keep climbing.",
-    "You're doing great. Stay steady.",
-    "Push through. The summit is waiting.",
+    "Halfway there! Keep going.",
+    "You're halfway. Stay strong!",
+    "Half done. You got this!",
   ],
   complete: [
-    "Summit step complete. You crushed it.",
-    "Another camp reached. Well done.",
-    "The mountain is proud of you today.",
-    "Incredible climb. Rest well.",
+    "Workout complete! Amazing job!",
+    "You did it! Great work today.",
+    "Finished! You crushed it!",
+    "Done! Be proud of yourself.",
   ],
 }
