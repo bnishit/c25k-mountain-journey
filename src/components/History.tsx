@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
-import type { AppState } from '../types'
+import type { AppState, CompletedWorkout } from '../types'
 import { formatDurationLong } from '../data/program'
 
 interface HistoryProps {
   state: AppState
   onReset: () => void
+  onSelectWorkout: (workout: CompletedWorkout) => void
 }
 
 const containerVariants = {
@@ -20,7 +21,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 }
 
-export function History({ state, onReset }: HistoryProps) {
+export function History({ state, onReset, onSelectWorkout }: HistoryProps) {
   const { completedWorkouts } = state
 
   const sortedWorkouts = [...completedWorkouts].sort((a, b) =>
@@ -81,10 +82,13 @@ export function History({ state, onReset }: HistoryProps) {
         ) : (
           <div className="space-y-3">
             {sortedWorkouts.map((workout, index) => (
-              <motion.div
+              <motion.button
                 key={`${workout.week}-${workout.day}-${workout.completedAt}-${index}`}
                 variants={itemVariants}
-                className="glass-card p-4 flex items-center justify-between"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onSelectWorkout(workout)}
+                className="glass-card p-4 flex items-center justify-between w-full text-left"
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -104,12 +108,15 @@ export function History({ state, onReset }: HistoryProps) {
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="flex items-center gap-3">
                   <p className="font-semibold text-[#f97316]">
                     {formatDurationLong(workout.actualDuration)}
                   </p>
+                  <svg className="w-5 h-5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         )}

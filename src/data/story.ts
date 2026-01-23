@@ -1,24 +1,25 @@
-// The Mountain Journey - Story Data
+// Everest Base Camp Trek - Story Data
 
 export interface Camp {
   week: number
   name: string
-  elevation: number // 0-100
+  elevation: number // actual elevation in meters
+  elevationPercent: number // 0-100 for progress visualization
   theme: string
   message: string
   milestone?: string
 }
 
 export const CAMPS: Camp[] = [
-  { week: 1, name: 'Base Camp', elevation: 0, theme: 'Beginning', message: 'Every summit begins with a single step', milestone: 'Your journey begins' },
-  { week: 2, name: 'The Trail', elevation: 11, theme: 'Finding rhythm', message: "You're finding your footing" },
-  { week: 3, name: 'First Vista', elevation: 22, theme: 'Looking back', message: "Look how far you've already come", milestone: 'First 3-minute run' },
-  { week: 4, name: 'The Meadow', elevation: 33, theme: 'Calm before climb', message: 'Rest here. Gather your strength.' },
-  { week: 5, name: 'The Ascent', elevation: 44, theme: 'Breakthrough', message: "The mountain tests you. You're ready.", milestone: 'First 20-minute run' },
-  { week: 6, name: 'Above the Clouds', elevation: 56, theme: 'Clarity', message: 'You can see the summit now' },
-  { week: 7, name: 'Final Ridge', elevation: 67, theme: 'Endurance', message: "The air is thinner. You're stronger.", milestone: '25 minutes non-stop' },
-  { week: 8, name: 'The Push', elevation: 78, theme: 'Almost there', message: 'Every step counts now' },
-  { week: 9, name: 'The Summit', elevation: 100, theme: 'Victory', message: "You stand at the top. You're a runner.", milestone: '30 minutes - 5K runner' },
+  { week: 1, name: 'Kathmandu', elevation: 1400, elevationPercent: 0, theme: 'The journey begins', message: 'Your adventure starts in the bustling capital', milestone: 'Your trek begins' },
+  { week: 2, name: 'Lukla', elevation: 2860, elevationPercent: 12, theme: 'Gateway to Everest', message: 'The famous mountain airstrip awaits', milestone: 'Entered the Khumbu region' },
+  { week: 3, name: 'Namche Bazaar', elevation: 3440, elevationPercent: 25, theme: 'Sherpa capital', message: 'The heart of Sherpa culture', milestone: 'First 3-minute run' },
+  { week: 4, name: 'Tengboche', elevation: 3867, elevationPercent: 38, theme: 'Monastery in the clouds', message: 'The famous monastery offers blessings for your journey' },
+  { week: 5, name: 'Dingboche', elevation: 4410, elevationPercent: 50, theme: 'Acclimatization', message: 'Your body adapts to the thin air', milestone: 'First 20-minute run' },
+  { week: 6, name: 'Lobuche', elevation: 4940, elevationPercent: 65, theme: 'Into thin air', message: 'The landscape turns to ice and rock' },
+  { week: 7, name: 'Gorak Shep', elevation: 5164, elevationPercent: 78, theme: 'Final settlement', message: 'The last teahouse before base camp', milestone: '25 minutes non-stop' },
+  { week: 8, name: 'Everest Base Camp', elevation: 5364, elevationPercent: 90, theme: 'The destination', message: 'You stand where legends begin' },
+  { week: 9, name: 'Kala Patthar', elevation: 5545, elevationPercent: 100, theme: 'The view of Everest', message: 'The best view of the highest peak on Earth', milestone: '30 minutes - 5K runner' },
 ]
 
 export function getCamp(week: number): Camp {
@@ -29,134 +30,134 @@ export function getCamp(week: number): Camp {
 export const FUTURE_VISION: Record<number, string[]> = {
   1: [
     "Today you run 60 seconds at a time. In 9 weeks, you'll run 30 minutes straight.",
-    "This is Week 1. By Week 9, walking breaks will be a distant memory.",
-    "Right now, 60 seconds feels like a lot. Soon, 30 minutes will feel like home.",
+    "From Kathmandu to Kala Patthar. The journey of 5,545 meters begins now.",
+    "Right now, 60 seconds feels like a lot. Soon, you'll be at Everest Base Camp.",
   ],
   2: [
-    "You're running 90 seconds now. In 7 weeks, that'll be 30 minutes.",
-    "Each workout is building something. You'll see it soon.",
-    "The summit is 21 workouts away. You've already taken the first steps.",
+    "You're running 90 seconds now. Namche Bazaar awaits in one week.",
+    "Each workout climbs higher. Lukla is just the beginning.",
+    "Kala Patthar is 21 workouts away. You've already landed in Lukla.",
   ],
   3: [
-    "3-minute runs this week. In 6 weeks, you'll run 30 minutes without stopping.",
-    "You're a third of the way there. The view keeps getting better.",
-    "Look up. The summit is closer than it looks.",
+    "3-minute runs this week. Tengboche monastery is just ahead.",
+    "You've reached the Sherpa capital. The real climb begins.",
+    "Look up at the peaks. You're getting closer with every run.",
   ],
   4: [
-    "5-minute runs are coming. Then 8. Then 20. Then 30.",
-    "Halfway to the summit. The hardest climbing is behind you.",
-    "In 5 weeks, you'll be a runner. That's not far.",
+    "5-minute runs are coming. Then 8. Then 20. Then Everest Base Camp.",
+    "The monastery blesses your journey. Dingboche is next.",
+    "In 5 weeks, you'll stand at Kala Patthar. Keep climbing.",
   ],
   5: [
-    "This week you run 20 minutes straight. You're becoming a runner.",
-    "The summit is 12 workouts away. Every one matters.",
-    "After this week, you'll never doubt yourself again.",
+    "This week you run 20 minutes straight. You're acclimatizing.",
+    "Base Camp is 12 workouts away. Your body is adapting.",
+    "After Dingboche, the air gets thinner. But so do the doubts.",
   ],
   6: [
-    "25 minutes next week. You can already taste the summit.",
-    "9 workouts left. The end is visible now.",
-    "You've run 20 minutes. 30 is just a little more.",
+    "25 minutes next week. Gorak Shep is within reach.",
+    "9 workouts to Kala Patthar. The end is visible now.",
+    "Lobuche marks the final push. You've come so far.",
   ],
   7: [
-    "28 minutes next week. Then 30. Then forever.",
-    "6 workouts to the summit. You're so close.",
-    "Two more weeks. You can almost touch it.",
+    "28 minutes next week. Base Camp is almost here.",
+    "6 workouts to Kala Patthar. The summit view awaits.",
+    "Two more weeks. Everest is right there.",
   ],
   8: [
-    "30 minutes next week. That's 5K. That's the summit.",
-    "3 workouts left. The summit is right there.",
-    "One more week. You've already done the hard part.",
+    "30 minutes next week. That's 5K. That's Kala Patthar.",
+    "3 workouts left. You're at Base Camp now.",
+    "One more week. The view of Everest awaits.",
   ],
   9: [
-    "This is it. 30 minutes. The summit.",
-    "You're about to become a runner. Permanently.",
-    "The view from the top is waiting for you.",
+    "This is it. 30 minutes. Kala Patthar summit.",
+    "You're about to see Everest like few ever will.",
+    "The highest view is waiting for you.",
   ],
 }
 
 // Present Acknowledgment messages - where you are now
 export const PRESENT_ACKNOWLEDGMENT: Record<number, string[]> = {
   1: [
-    "Everyone starts at Base Camp. You're already ahead by being here.",
-    "Week 1 is the bravest week. You showed up.",
+    "Everyone starts in Kathmandu. You're already ahead by being here.",
+    "Week 1 is the bravest week. The flight to Lukla is booked.",
     "The first step is always the hardest. You've taken it.",
   ],
   2: [
-    "Week 2. You came back. That's what matters.",
+    "Week 2. You landed in Lukla. That takes courage.",
     "Your body is starting to adapt. You might not feel it yet, but it is.",
-    "Most people don't make it past Week 1. You did.",
+    "Most people don't make it past Kathmandu. You did.",
   ],
   3: [
-    "Week 3. You're past the hardest part.",
-    "Look back at Base Camp. That was you, 2 weeks ago.",
+    "Week 3. You're in Namche, the heart of Sherpa country.",
+    "Look back at Lukla. That was you, just a week ago.",
     "You're running 3 minutes at a time. That's real progress.",
   ],
   4: [
-    "The Meadow. A moment of calm before the real climb.",
+    "Tengboche. The monastery offers blessings for the climb ahead.",
     "Week 4. Your consistency is building something.",
-    "You're not the same person who started at Base Camp.",
+    "You're not the same person who left Kathmandu.",
   ],
   5: [
-    "The Ascent. This is where runners are made.",
-    "Halfway to the summit. Look how far you've come.",
-    "Week 5. The mountain is testing you. You're passing.",
+    "Dingboche. This is where trekkers become mountaineers.",
+    "Halfway to Kala Patthar. Look how far you've come.",
+    "Week 5. The altitude is testing you. You're passing.",
   ],
   6: [
-    "Above the Clouds. You can see the summit from here.",
+    "Lobuche. You can see the ice fields from here.",
     "Week 6. Your body knows how to run now.",
-    "The hardest weeks are behind you. This is the reward.",
+    "The hardest weeks are behind you. The view gets better.",
   ],
   7: [
-    "Final Ridge. The air is thinner. You're stronger.",
-    "Week 7. You've been running for nearly two months.",
-    "Look down at the clouds. You're above them now.",
+    "Gorak Shep. The final settlement before Base Camp.",
+    "Week 7. You've been trekking for nearly two months.",
+    "Look at the peaks around you. You belong here now.",
   ],
   8: [
-    "The Push. Almost there. Every step counts.",
-    "Week 8. One week stands between you and the summit.",
+    "Everest Base Camp. You made it. Almost.",
+    "Week 8. Kala Patthar is right there.",
     "You've come too far to stop now. And you won't.",
   ],
   9: [
-    "The Summit. You made it.",
+    "Kala Patthar. The view of Everest. You made it.",
     "Week 9. You're a runner now. Permanently.",
-    "Look back at the journey. Look at who you've become.",
+    "Look back at Kathmandu. Look at who you've become.",
   ],
 }
 
 // Post-workout celebration messages
 export const POST_WORKOUT: string[] = [
-  "Another step closer to the summit.",
-  "The mountain knows your name now.",
-  "Rest well, climber. Tomorrow, we continue.",
+  "Another step closer to Everest.",
+  "The Himalayas know your name now.",
+  "Rest well, trekker. Tomorrow, we climb higher.",
   "You showed up. That's what separates you.",
-  "One more climb complete. Well done.",
-  "The summit is closer than yesterday.",
+  "One more day on the trail complete. Well done.",
+  "Kala Patthar is closer than yesterday.",
   "You're building something that lasts.",
-  "Today's work becomes tomorrow's strength.",
+  "Today's effort becomes tomorrow's altitude.",
 ]
 
 // Milestone messages (special moments)
 export const MILESTONES: Record<string, string> = {
-  'first_workout': "The first step is always the bravest. You've taken it.",
-  'week_1_complete': "Base Camp secured. The journey has truly begun.",
-  'first_3min_run': "You just ran 3 minutes. You've never done that before.",
-  'halfway': "Halfway to the summit. Look how far you've come.",
-  'first_20min_run': "Twenty minutes. No stopping. You're a runner now.",
-  'week_8_complete': "One week to the summit. You can almost touch it.",
-  'final_workout': "You stand at the summit. You did what most never will.",
+  'first_workout': "The first step is always the bravest. Welcome to Kathmandu.",
+  'week_1_complete': "Kathmandu complete. Lukla awaits.",
+  'first_3min_run': "You just ran 3 minutes. Namche Bazaar celebrates you.",
+  'halfway': "Halfway to Kala Patthar. The air is getting thinner.",
+  'first_20min_run': "Twenty minutes. No stopping. You're a trekker now.",
+  'week_8_complete': "You're at Base Camp. Kala Patthar is right there.",
+  'final_workout': "You stand at Kala Patthar. Everest stretches before you.",
 }
 
 // Time-of-day messages
 export function getTimeOfDayMessage(): string {
   const hour = new Date().getHours()
   if (hour >= 5 && hour < 10) {
-    return "The mountain is quiet. Perfect for climbing."
+    return "The Himalayas are quiet. Perfect for trekking."
   } else if (hour >= 10 && hour < 16) {
-    return "The sun is high. Let's make progress."
+    return "The sun is high over the peaks. Let's make progress."
   } else if (hour >= 16 && hour < 21) {
-    return "End the day with a climb."
+    return "End the day with a trek towards Everest."
   } else {
-    return "Night climb. Bold move."
+    return "Night trek. The Sherpas would be impressed."
   }
 }
 

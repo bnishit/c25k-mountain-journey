@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { AppState } from '../types'
-import { loadState, saveState, completeWorkout as completeWorkoutUtil, resetProgress as resetProgressUtil } from '../utils/storage'
+import type { AppState, SpeedSettings } from '../types'
+import { loadState, saveState, completeWorkout as completeWorkoutUtil, resetProgress as resetProgressUtil, updateSpeedSettings as updateSpeedSettingsUtil } from '../utils/storage'
 
 export function useProgress() {
   const [state, setState] = useState<AppState>(loadState)
@@ -17,9 +17,14 @@ export function useProgress() {
     setState(resetProgressUtil())
   }, [])
 
+  const updateSpeeds = useCallback((speedSettings: SpeedSettings) => {
+    setState(prev => updateSpeedSettingsUtil(prev, speedSettings))
+  }, [])
+
   return {
     state,
     completeWorkout,
-    resetProgress
+    resetProgress,
+    updateSpeeds
   }
 }

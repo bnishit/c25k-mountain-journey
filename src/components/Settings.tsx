@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import type { SpeedSettings } from '../types'
 import {
   getStoredApiKey,
   storeApiKey,
@@ -12,6 +13,8 @@ import {
 
 interface SettingsProps {
   onClose: () => void
+  speedSettings: SpeedSettings
+  onUpdateSpeeds: (speeds: SpeedSettings) => void
 }
 
 const containerVariants = {
@@ -27,13 +30,21 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 }
 
-export function Settings({ onClose }: SettingsProps) {
+export function Settings({ onClose, speedSettings, onUpdateSpeeds }: SettingsProps) {
   const [apiKey, setApiKey] = useState('')
   const [hasKey, setHasKey] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState({ current: 0, total: 0, key: '' })
   const [audioCached, setAudioCached] = useState(false)
   const [error, setError] = useState('')
+
+  const handleSpeedChange = (type: 'run' | 'walk', delta: number) => {
+    const key = type === 'run' ? 'runSpeed' : 'walkSpeed'
+    const min = type === 'run' ? 3.0 : 2.0
+    const max = type === 'run' ? 15.0 : 8.0
+    const newValue = Math.max(min, Math.min(max, speedSettings[key] + delta))
+    onUpdateSpeeds({ ...speedSettings, [key]: newValue })
+  }
 
   useEffect(() => {
     const storedKey = getStoredApiKey()
@@ -162,6 +173,62 @@ export function Settings({ onClose }: SettingsProps) {
               API key saved
             </div>
           )}
+        </motion.div>
+
+        {/* Treadmill Settings Section */}
+        <motion.div variants={itemVariants} className="glass-card p-5 mb-5">
+          <h2 className="font-semibold mb-1">Treadmill Speeds</h2>
+          <p className="text-xs text-[var(--text-muted)] mb-4">
+            Default speeds for run and walk intervals (km/h)
+          </p>
+
+          <div className="space-y-4">
+            {/* Run Speed */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🏃</span>
+                <span className="font-medium text-[#f97316]">Run Speed</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleSpeedChange('run', -0.5)}
+                  className="w-10 h-10 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center text-lg font-bold text-[var(--text-muted)] border border-[var(--border-subtle)] hover:bg-[rgba(255,255,255,0.05)]"
+                >
+                  -
+                </button>
+                <span className="w-20 text-center font-bold text-lg">{speedSettings.runSpeed.toFixed(1)}</span>
+                <button
+                  onClick={() => handleSpeedChange('run', 0.5)}
+                  className="w-10 h-10 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center text-lg font-bold text-[var(--text-muted)] border border-[var(--border-subtle)] hover:bg-[rgba(255,255,255,0.05)]"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Walk Speed */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🚶</span>
+                <span className="font-medium text-[#2dd4bf]">Walk Speed</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleSpeedChange('walk', -0.5)}
+                  className="w-10 h-10 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center text-lg font-bold text-[var(--text-muted)] border border-[var(--border-subtle)] hover:bg-[rgba(255,255,255,0.05)]"
+                >
+                  -
+                </button>
+                <span className="w-20 text-center font-bold text-lg">{speedSettings.walkSpeed.toFixed(1)}</span>
+                <button
+                  onClick={() => handleSpeedChange('walk', 0.5)}
+                  className="w-10 h-10 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center text-lg font-bold text-[var(--text-muted)] border border-[var(--border-subtle)] hover:bg-[rgba(255,255,255,0.05)]"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Voice Generation Section */}

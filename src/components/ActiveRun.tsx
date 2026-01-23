@@ -1,22 +1,29 @@
 import { useEffect, useCallback, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Workout, Interval } from '../types'
+import type { Workout, Interval, SpeedSettings } from '../types'
 import { useTimer } from '../hooks/useTimer'
 import { useAudio } from '../hooks/useAudio'
 import { formatDuration, getIntervalLabel } from '../data/program'
 import { Confetti, SuccessRings } from './Confetti'
+import { SkyLayer } from './EverestScene/SkyLayer'
+import { WeatherEffects } from './WeatherEffects/WeatherEffects'
+import { useEnvironmentTheme, EnvironmentProvider } from '../contexts/EnvironmentContext'
+import { getCamp } from '../data/story'
 
 interface ActiveRunProps {
   workout: Workout
+  speedSettings: SpeedSettings
   onComplete: (duration: number) => void
   onCancel: () => void
 }
 
-export function ActiveRun({ workout, onComplete, onCancel }: ActiveRunProps) {
+function ActiveRunContent({ workout, speedSettings, onComplete, onCancel }: ActiveRunProps) {
   const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
   const audio = useAudio()
+  const theme = useEnvironmentTheme(workout.week)
+  const camp = getCamp(workout.week)
 
   const handleIntervalChange = useCallback((interval: Interval) => {
     audio.announceStart(interval.type)
@@ -113,7 +120,14 @@ export function ActiveRun({ workout, onComplete, onCancel }: ActiveRunProps) {
   // Countdown screen
   if (countdown !== null) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+        {/* Environmental background */}
+        <div className="absolute inset-0">
+          <SkyLayer theme={theme} />
+          <WeatherEffects theme={theme} />
+        </div>
+        <div className="absolute inset-0 bg-black/40" />
+
         <AnimatePresence mode="wait">
           <motion.div
             key={countdown}
@@ -121,8 +135,8 @@ export function ActiveRun({ workout, onComplete, onCancel }: ActiveRunProps) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 1.5, opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-display text-[160px]"
-            style={{ color: countdown === 0 ? '#f97316' : 'var(--text-primary)' }}
+            className="relative text-display text-[160px]"
+            style={{ color: countdown === 0 ? '#f97316' : 'white' }}
           >
             {countdown === 0 ? 'GO' : countdown}
           </motion.div>
@@ -134,18 +148,40 @@ export function ActiveRun({ workout, onComplete, onCancel }: ActiveRunProps) {
   // Pre-start screen
   if (!timer.isRunning && timer.totalElapsed === 0) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] px-6 flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center text-center">
+      <div className="min-h-screen relative overflow-hidden px-6 flex flex-col">
+        {/* Environmental background */}
+        <div className="absolute inset-0">
+          <SkyLayer theme={theme} />
+          <WeatherEffects theme={theme} />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+
+        <div className="relative flex-1 flex flex-col items-center justify-center text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <p className="text-caption text-[var(--text-muted)] mb-2">
+            {/* Camp badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full mb-4"
+            >
+              <span className="text-xs font-semibold text-white/70">
+                {camp.name}
+              </span>
+              <span className="text-xs font-bold text-orange-400">
+                {camp.elevation.toLocaleString()}m
+              </span>
+            </motion.div>
+
+            <p className="text-caption text-white/60 mb-2">
               Week {workout.week} · Day {workout.day}
             </p>
-            <p className="text-heading text-2xl mb-2">{formatDuration(workout.totalDuration)}</p>
-            <p className="text-body text-[var(--text-tertiary)] mb-12 max-w-xs mx-auto">
+            <p className="text-heading text-2xl text-white mb-2">{formatDuration(workout.totalDuration)}</p>
+            <p className="text-body text-white/60 mb-12 max-w-xs mx-auto">
               Put in your earphones. You'll hear voice cues for each interval.
             </p>
           </motion.div>
@@ -175,7 +211,7 @@ export function ActiveRun({ workout, onComplete, onCancel }: ActiveRunProps) {
 
         <button
           onClick={handleCancel}
-          className="py-6 text-[var(--text-muted)] font-medium transition-colors hover:text-[var(--text-secondary)]"
+          className="relative py-6 text-white/60 font-medium transition-colors hover:text-white"
         >
           Cancel
         </button>
@@ -186,31 +222,66 @@ export function ActiveRun({ workout, onComplete, onCancel }: ActiveRunProps) {
   // Active run screen
   return (
     <motion.div
-      className="min-h-screen px-6 flex flex-col transition-colors duration-700"
-      style={{ background: `radial-gradient(circle at 50% 30%, ${getGlowColor()} 0%, var(--bg-primary) 70%)` }}
+      className="min-h-screen relative overflow-hidden px-6 flex flex-col transition-colors duration-700"
     >
+      {/* Environmental background */}
+      <div className="absolute inset-0">
+        <SkyLayer theme={theme} />
+        <WeatherEffects theme={theme} />
+      </div>
+      <div
+        className="absolute inset-0 transition-colors duration-700"
+        style={{ background: `radial-gradient(circle at 50% 30%, ${getGlowColor()} 0%, rgba(0,0,0,0.6) 70%)` }}
+      />
+
       <Confetti show={showCelebration} />
       <SuccessRings show={showCelebration} />
 
-      <div className="flex-1 flex flex-col items-center justify-center">
-        {/* Interval label */}
+      {/* Altitude badge */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="absolute top-4 right-4 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full"
+      >
+        <span className="text-xs font-bold text-orange-400">
+          {camp.elevation.toLocaleString()}m
+        </span>
+      </motion.div>
+
+      <div className="relative flex-1 flex flex-col items-center justify-center">
+        {/* Interval label and remaining count */}
         <motion.div
           key={timer.currentIntervalIndex}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 mb-6"
+          className="text-center mb-4"
         >
-          <span className="text-caption text-[var(--text-muted)]">
-            {timer.currentIntervalIndex + 1} / {workout.intervals.length}
-          </span>
-          <span className="w-1 h-1 rounded-full bg-[var(--text-muted)]" />
           <span
-            className="text-caption"
+            className="text-2xl font-bold"
             style={{ color: accentColor }}
           >
             {timer.currentInterval ? getIntervalLabel(timer.currentInterval.type).toUpperCase() : ''}
           </span>
+          {/* Speed display for run/walk */}
+          {timer.currentInterval && (timer.currentInterval.type === 'run' || timer.currentInterval.type === 'walk') && (
+            <div className="mt-1">
+              <span className="text-sm font-medium" style={{ color: accentColor }}>
+                {timer.currentInterval.type === 'run' ? speedSettings.runSpeed.toFixed(1) : speedSettings.walkSpeed.toFixed(1)} km/h
+              </span>
+            </div>
+          )}
         </motion.div>
+
+        {/* Intervals remaining */}
+        <div className="flex items-center gap-2 mb-6">
+          <span className="text-caption text-[var(--text-muted)]">
+            {timer.currentIntervalIndex + 1} of {timer.totalIntervals}
+          </span>
+          <span className="w-1 h-1 rounded-full bg-[var(--text-muted)]" />
+          <span className="text-caption text-[var(--text-muted)]">
+            {timer.intervalsRemaining} left
+          </span>
+        </div>
 
         {/* Circular Progress Timer */}
         <div className="relative" style={{ width: size, height: size }}>
@@ -258,32 +329,51 @@ export function ActiveRun({ workout, onComplete, onCancel }: ActiveRunProps) {
           </div>
         </div>
 
-        {/* Pause/Resume button */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={timer.isPaused ? timer.resume : timer.pause}
-          className="mt-10 w-16 h-16 rounded-full flex items-center justify-center transition-all"
-          style={{
-            background: timer.isPaused
-              ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
-              : 'rgba(255,255,255,0.08)',
-            boxShadow: timer.isPaused
-              ? '0 4px 20px rgba(249, 115, 22, 0.3)'
-              : 'none',
-            border: timer.isPaused ? 'none' : '1px solid rgba(255,255,255,0.1)'
-          }}
-        >
-          {timer.isPaused ? (
-            <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
+        {/* Control buttons: Pause/Resume and Skip */}
+        <div className="flex items-center gap-4 mt-10">
+          {/* Pause/Resume button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={timer.isPaused ? timer.resume : timer.pause}
+            className="w-16 h-16 rounded-full flex items-center justify-center transition-all"
+            style={{
+              background: timer.isPaused
+                ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
+                : 'rgba(255,255,255,0.08)',
+              boxShadow: timer.isPaused
+                ? '0 4px 20px rgba(249, 115, 22, 0.3)'
+                : 'none',
+              border: timer.isPaused ? 'none' : '1px solid rgba(255,255,255,0.1)'
+            }}
+          >
+            {timer.isPaused ? (
+              <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 4h4v16H6zm8 0h4v16h-4z" />
+              </svg>
+            )}
+          </motion.button>
+
+          {/* Skip button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={timer.skipToNext}
+            className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }}
+          >
+            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
             </svg>
-          ) : (
-            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 4h4v16H6zm8 0h4v16h-4z" />
-            </svg>
-          )}
-        </motion.button>
+          </motion.button>
+        </div>
 
         {/* Overall progress */}
         <div className="w-full max-w-xs mt-12">
@@ -304,10 +394,18 @@ export function ActiveRun({ workout, onComplete, onCancel }: ActiveRunProps) {
 
       <button
         onClick={handleCancel}
-        className="py-6 text-[var(--text-muted)] font-medium transition-colors hover:text-[var(--text-secondary)]"
+        className="relative py-6 text-white/60 font-medium transition-colors hover:text-white"
       >
         End Workout
       </button>
     </motion.div>
+  )
+}
+
+export function ActiveRun(props: ActiveRunProps) {
+  return (
+    <EnvironmentProvider week={props.workout.week}>
+      <ActiveRunContent {...props} />
+    </EnvironmentProvider>
   )
 }

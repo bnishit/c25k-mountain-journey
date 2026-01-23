@@ -1,19 +1,31 @@
-import type { AppState, CompletedWorkout } from '../types'
+import type { AppState, CompletedWorkout, SpeedSettings } from '../types'
 
 const STORAGE_KEY = 'c25k-progress'
+
+const DEFAULT_SPEED_SETTINGS: SpeedSettings = {
+  runSpeed: 8.0,
+  walkSpeed: 5.0
+}
 
 const DEFAULT_STATE: AppState = {
   currentWeek: 1,
   currentDay: 1,
   completedWorkouts: [],
-  startDate: null
+  startDate: null,
+  speedSettings: DEFAULT_SPEED_SETTINGS
 }
 
 export function loadState(): AppState {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return DEFAULT_STATE
-    return JSON.parse(saved)
+    const parsed = JSON.parse(saved)
+    // Migration: add speedSettings if missing from older localStorage data
+    return {
+      ...DEFAULT_STATE,
+      ...parsed,
+      speedSettings: parsed.speedSettings ?? DEFAULT_SPEED_SETTINGS
+    }
   } catch {
     return DEFAULT_STATE
   }
@@ -72,4 +84,16 @@ export function isWorkoutCompleted(
 export function resetProgress(): AppState {
   localStorage.removeItem(STORAGE_KEY)
   return DEFAULT_STATE
+}
+
+export function updateSpeedSettings(
+  state: AppState,
+  speedSettings: SpeedSettings
+): AppState {
+  const newState: AppState = {
+    ...state,
+    speedSettings
+  }
+  saveState(newState)
+  return newState
 }

@@ -136,6 +136,41 @@ export function useTimer({
     })
   }, [clearTimer, intervals])
 
+  const skipToNext = useCallback(() => {
+    setState(prev => {
+      if (!prev.isRunning) return prev
+
+      const timeSkipped = prev.intervalTimeRemaining
+      const nextIndex = prev.currentIntervalIndex + 1
+
+      // If this is the last interval, complete the workout
+      if (nextIndex >= intervals.length) {
+        if (onComplete) {
+          setTimeout(onComplete, 100)
+        }
+        return {
+          ...prev,
+          isRunning: false,
+          intervalTimeRemaining: 0,
+          totalElapsed: prev.totalElapsed + timeSkipped
+        }
+      }
+
+      // Move to next interval
+      const nextInterval = intervals[nextIndex]
+      if (onIntervalChange) {
+        setTimeout(() => onIntervalChange(nextInterval, nextIndex), 100)
+      }
+
+      return {
+        ...prev,
+        currentIntervalIndex: nextIndex,
+        intervalTimeRemaining: nextInterval.duration,
+        totalElapsed: prev.totalElapsed + timeSkipped
+      }
+    })
+  }, [intervals, onIntervalChange, onComplete])
+
   // Timer loop
   useEffect(() => {
     if (state.isRunning && !state.isPaused) {
@@ -146,10 +181,14 @@ export function useTimer({
     return clearTimer
   }, [state.isRunning, state.isPaused, tick, clearTimer])
 
+  const intervalsRemaining = intervals.length - state.currentIntervalIndex - 1
+
   return {
     ...state,
     currentInterval,
     totalDuration,
+    intervalsRemaining,
+    totalIntervals: intervals.length,
     progress: state.totalElapsed / totalDuration,
     intervalProgress: currentInterval
       ? 1 - state.intervalTimeRemaining / currentInterval.duration
@@ -157,6 +196,7 @@ export function useTimer({
     start,
     pause,
     resume,
-    stop
+    stop,
+    skipToNext
   }
 }
