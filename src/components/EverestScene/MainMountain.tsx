@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { memo, useMemo } from 'react'
 import type { EnvironmentTheme } from '../../contexts/EnvironmentContext'
 
 interface MainMountainProps {
@@ -7,8 +7,8 @@ interface MainMountainProps {
   height?: number
 }
 
-export function MainMountain({ theme, width = 400, height = 300 }: MainMountainProps) {
-  // Everest-inspired mountain silhouette path
+// Memoized path generator to avoid recalculations
+function generatePaths(width: number, height: number) {
   const mainMountainPath = `
     M 0 ${height}
     L 0 ${height * 0.7}
@@ -32,7 +32,6 @@ export function MainMountain({ theme, width = 400, height = 300 }: MainMountainP
     Z
   `
 
-  // Snow cap path (upper portion of mountain)
   const snowCapPath = `
     M ${width * 0.35} ${height * 0.35}
     L ${width * 0.42} ${height * 0.25}
@@ -50,7 +49,6 @@ export function MainMountain({ theme, width = 400, height = 300 }: MainMountainP
     Z
   `
 
-  // Background mountain (distant peak)
   const distantMountainPath = `
     M 0 ${height}
     L ${width * 0.1} ${height * 0.75}
@@ -65,6 +63,17 @@ export function MainMountain({ theme, width = 400, height = 300 }: MainMountainP
     L ${width} ${height}
     Z
   `
+
+  const ridgePath = `M ${width * 0.42} ${height * 0.25} L ${width * 0.52} ${height * 0.08} L ${width * 0.62} ${height * 0.22}`
+
+  return { mainMountainPath, snowCapPath, distantMountainPath, ridgePath }
+}
+
+export const MainMountain = memo(function MainMountain({ theme, width = 400, height = 300 }: MainMountainProps) {
+  // Memoize path calculations - only recalculate when dimensions change
+  const paths = useMemo(() => generatePaths(width, height), [width, height])
+
+  const snowOpacity = theme.snowIntensity > 0 ? Math.min(1, theme.snowIntensity * 2) : 0
 
   return (
     <svg
@@ -93,53 +102,36 @@ export function MainMountain({ theme, width = 400, height = 300 }: MainMountainP
           <stop offset="0%" stopColor={theme.mountainColor} stopOpacity="0.3" />
           <stop offset="100%" stopColor={theme.mountainColor} stopOpacity="0.15" />
         </linearGradient>
-
-        {/* Shadow for depth */}
-        <filter id="mountainShadow">
-          <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="black" floodOpacity="0.3" />
-        </filter>
       </defs>
 
-      {/* Distant background mountain */}
-      <motion.path
-        d={distantMountainPath}
+      {/* Distant background mountain - static, no animation */}
+      <path
+        d={paths.distantMountainPath}
         fill="url(#distantGradient)"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.2 }}
       />
 
-      {/* Main mountain */}
-      <motion.path
-        d={mainMountainPath}
+      {/* Main mountain - static, no animation */}
+      <path
+        d={paths.mainMountainPath}
         fill="url(#mountainGradient)"
-        filter="url(#mountainShadow)"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.4 }}
       />
 
       {/* Snow cap (only visible at higher elevations) */}
-      {theme.snowIntensity > 0 && (
-        <motion.path
-          d={snowCapPath}
+      {snowOpacity > 0 && (
+        <path
+          d={paths.snowCapPath}
           fill="url(#snowGradient)"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: Math.min(1, theme.snowIntensity * 2) }}
-          transition={{ duration: 1, delay: 0.6 }}
+          opacity={snowOpacity}
         />
       )}
 
-      {/* Ridge highlights */}
-      <motion.path
-        d={`M ${width * 0.42} ${height * 0.25} L ${width * 0.52} ${height * 0.08} L ${width * 0.62} ${height * 0.22}`}
+      {/* Ridge highlights - static */}
+      <path
+        d={paths.ridgePath}
         fill="none"
         stroke="rgba(255,255,255,0.2)"
         strokeWidth="2"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 2, delay: 0.8 }}
       />
     </svg>
   )
-}
+})

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import type { Interval } from '../types'
 
 interface TimerState {
@@ -35,7 +35,19 @@ export function useTimer({
   const timerRef = useRef<number | null>(null)
   const halfwayAnnouncedRef = useRef<Set<number>>(new Set())
 
-  const totalDuration = intervals.reduce((sum, i) => sum + i.duration, 0)
+  // Use refs for callbacks to avoid recreating tick function
+  const callbacksRef = useRef({ onIntervalChange, onCountdown, onHalfway, onComplete })
+  callbacksRef.current = { onIntervalChange, onCountdown, onHalfway, onComplete }
+
+  // Memoize intervals reference for stable tick function
+  const intervalsRef = useRef(intervals)
+  intervalsRef.current = intervals
+
+  // Memoize total duration
+  const totalDuration = useMemo(
+    () => intervals.reduce((sum, i) => sum + i.duration, 0),
+    [intervals]
+  )
   const currentInterval = intervals[state.currentIntervalIndex]
 
   const clearTimer = useCallback(() => {
@@ -45,9 +57,13 @@ export function useTimer({
     }
   }, [])
 
+  // Stable tick function that reads from refs
   const tick = useCallback(() => {
     setState(prev => {
       if (!prev.isRunning || prev.isPaused) return prev
+
+      const intervals = intervalsRef.current
+      const { onCountdown, onHalfway, onComplete, onIntervalChange } = callbacksRef.current
 
       const newIntervalRemaining = prev.intervalTimeRemaining - 1
       const newTotalElapsed = prev.totalElapsed + 1
@@ -107,14 +123,16 @@ export function useTimer({
         totalElapsed: newTotalElapsed
       }
     })
-  }, [intervals, onIntervalChange, onCountdown, onHalfway, onComplete])
+  }, []) // Empty deps - reads from refs
 
   const start = useCallback(() => {
     setState(prev => ({ ...prev, isRunning: true, isPaused: false }))
+    const { onIntervalChange } = callbacksRef.current
+    const intervals = intervalsRef.current
     if (onIntervalChange && intervals[0]) {
       onIntervalChange(intervals[0], 0)
     }
-  }, [intervals, onIntervalChange])
+  }, [])
 
   const pause = useCallback(() => {
     setState(prev => ({ ...prev, isPaused: true }))
@@ -127,6 +145,7 @@ export function useTimer({
   const stop = useCallback(() => {
     clearTimer()
     halfwayAnnouncedRef.current.clear()
+    const intervals = intervalsRef.current
     setState({
       isRunning: false,
       isPaused: false,
@@ -134,11 +153,14 @@ export function useTimer({
       intervalTimeRemaining: intervals[0]?.duration ?? 0,
       totalElapsed: 0
     })
-  }, [clearTimer, intervals])
+  }, [clearTimer])
 
   const skipToNext = useCallback(() => {
     setState(prev => {
       if (!prev.isRunning) return prev
+
+      const intervals = intervalsRef.current
+      const { onComplete, onIntervalChange } = callbacksRef.current
 
       const timeSkipped = prev.intervalTimeRemaining
       const nextIndex = prev.currentIntervalIndex + 1
@@ -169,9 +191,9 @@ export function useTimer({
         totalElapsed: prev.totalElapsed + timeSkipped
       }
     })
-  }, [intervals, onIntervalChange, onComplete])
+  }, [])
 
-  // Timer loop
+  // Timer loop - now tick is stable so this effect rarely re-runs
   useEffect(() => {
     if (state.isRunning && !state.isPaused) {
       timerRef.current = window.setInterval(tick, 1000)

@@ -23,40 +23,44 @@ export function useAudio() {
     checkOpenAI()
   }, [])
 
+  // Helper to play audio blob with proper cleanup
+  const playAudioBlob = useCallback(async (blob: Blob): Promise<boolean> => {
+    const url = URL.createObjectURL(blob)
+    const audio = new Audio(url)
+
+    // Cleanup function to ensure URL is always revoked
+    const cleanup = () => {
+      URL.revokeObjectURL(url)
+    }
+
+    // Set up cleanup for both success and error cases
+    audio.onended = cleanup
+    audio.onerror = cleanup
+
+    try {
+      await audio.play()
+      return true
+    } catch (error) {
+      cleanup() // Clean up immediately on play error
+      console.error('Failed to play audio:', error)
+      return false
+    }
+  }, [])
+
   // Play OpenAI cached audio
   const playOpenAI = useCallback(async (category: 'run' | 'walk' | 'warmup' | 'cooldown' | 'halfway' | 'complete') => {
     const key = getRandomAudioKey(category)
     const blob = await getCachedAudio(key)
     if (!blob) return false
-
-    try {
-      const url = URL.createObjectURL(blob)
-      const audio = new Audio(url)
-      await audio.play()
-      audio.onended = () => URL.revokeObjectURL(url)
-      return true
-    } catch (error) {
-      console.error('Failed to play OpenAI audio:', error)
-      return false
-    }
-  }, [])
+    return playAudioBlob(blob)
+  }, [playAudioBlob])
 
   // Play countdown audio
   const playCountdownAudio = useCallback(async (key: 'countdown_10' | 'countdown_30') => {
     const blob = await getCachedAudio(key)
     if (!blob) return false
-
-    try {
-      const url = URL.createObjectURL(blob)
-      const audio = new Audio(url)
-      await audio.play()
-      audio.onended = () => URL.revokeObjectURL(url)
-      return true
-    } catch (error) {
-      console.error('Failed to play countdown audio:', error)
-      return false
-    }
-  }, [])
+    return playAudioBlob(blob)
+  }, [playAudioBlob])
 
   // Fallback Web Speech API (won't be used if OpenAI is available)
   const speakFallback = useCallback((text: string) => {

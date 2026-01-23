@@ -1,38 +1,50 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Particle {
   id: number
   x: number
-  y: number
   color: string
   rotation: number
   scale: number
+  duration: number
+  drift: number
 }
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4']
 
+// Reduced from 50 to 20 particles for better performance
+const PARTICLE_COUNT = 20
+
 function createParticles(count: number): Particle[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    x: Math.random() * 100,
-    y: -10,
-    color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    rotation: Math.random() * 360,
-    scale: 0.5 + Math.random() * 0.5,
+    x: 10 + (i * 80 / count) + (i % 2 ? 5 : -5), // Spread across screen
+    color: COLORS[i % COLORS.length],
+    rotation: (i * 30) % 360,
+    scale: 0.6 + (i % 3) * 0.2,
+    duration: 2.5 + (i % 4) * 0.3,
+    drift: (i % 2 ? 1 : -1) * (20 + (i % 3) * 15),
   }))
 }
 
-export function Confetti({ show }: { show: boolean }) {
+export const Confetti = memo(function Confetti({ show }: { show: boolean }) {
   const [particles, setParticles] = useState<Particle[]>([])
+
+  // Pre-compute particles once
+  const staticParticles = useMemo(() => createParticles(PARTICLE_COUNT), [])
 
   useEffect(() => {
     if (show) {
-      setParticles(createParticles(50))
+      setParticles(staticParticles)
       const timer = setTimeout(() => setParticles([]), 3000)
       return () => clearTimeout(timer)
+    } else {
+      setParticles([])
     }
-  }, [show])
+  }, [show, staticParticles])
+
+  if (particles.length === 0) return null
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
@@ -52,13 +64,13 @@ export function Confetti({ show }: { show: boolean }) {
               opacity: 1,
             }}
             animate={{
-              y: window.innerHeight + 50,
+              y: '100vh',
               rotate: particle.rotation + 720,
-              x: [0, Math.random() * 100 - 50, Math.random() * 100 - 50],
+              x: particle.drift,
             }}
             exit={{ opacity: 0 }}
             transition={{
-              duration: 2.5 + Math.random(),
+              duration: particle.duration,
               ease: 'easeOut',
             }}
           />
@@ -66,7 +78,7 @@ export function Confetti({ show }: { show: boolean }) {
       </AnimatePresence>
     </div>
   )
-}
+})
 
 // Success rings animation
 export function SuccessRings({ show }: { show: boolean }) {

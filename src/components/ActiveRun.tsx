@@ -293,37 +293,28 @@ function ActiveRunContent({ workout, speedSettings, onComplete, onCancel }: Acti
               stroke="rgba(255,255,255,0.06)"
               strokeWidth={strokeWidth}
             />
-            {/* Progress ring */}
-            <motion.circle
+            {/* Progress ring - removed expensive drop-shadow filter */}
+            <circle
               cx={size / 2} cy={size / 2} r={radius}
               fill="none"
               stroke={accentColor}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}
-              animate={{ strokeDashoffset: circumference * (1 - timer.intervalProgress) }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              style={{ filter: `drop-shadow(0 0 12px ${accentColor}50)` }}
+              strokeDashoffset={circumference * (1 - timer.intervalProgress)}
+              style={{ transition: 'stroke-dashoffset 0.5s ease-out' }}
             />
           </svg>
 
-          {/* Timer display */}
+          {/* Timer display - removed scale animation */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <motion.p
-              key={timer.intervalTimeRemaining}
-              initial={{ scale: 1.02 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.1 }}
-              className="text-display text-[72px] font-mono-timer"
-            >
+            <p className="text-display text-[72px] font-mono-timer">
               {formatDuration(timer.intervalTimeRemaining)}
-            </motion.p>
+            </p>
             {!timer.isPaused && (
-              <motion.div
-                className="w-2 h-2 rounded-full mt-3"
+              <div
+                className="w-2 h-2 rounded-full mt-3 animate-pulse"
                 style={{ background: accentColor }}
-                animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
               />
             )}
           </div>
