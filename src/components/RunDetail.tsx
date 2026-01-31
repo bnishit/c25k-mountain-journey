@@ -53,6 +53,12 @@ export function RunDetail({ workout, onBack }: RunDetailProps) {
 
   // Calculate total duration for proportional bars
   const totalDuration = programWorkout.intervals.reduce((sum, i) => sum + i.duration, 0)
+  const totalRunDuration = programWorkout.intervals
+    .filter((interval) => interval.type === 'run')
+    .reduce((sum, interval) => sum + interval.duration, 0)
+  const totalWalkDuration = programWorkout.intervals
+    .filter((interval) => interval.type === 'walk')
+    .reduce((sum, interval) => sum + interval.duration, 0)
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] px-5 pb-28 pt-safe">
@@ -155,7 +161,22 @@ export function RunDetail({ workout, onBack }: RunDetailProps) {
         </motion.div>
 
         {/* Summary stats */}
-        <motion.div variants={itemVariants} className="grid grid-cols-3 gap-3 mt-6">
+        <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mt-6">
+          <div className="glass-card p-4 text-center">
+            <p className="text-xl font-bold text-[#f97316]">
+              {formatDurationLong(totalRunDuration)}
+            </p>
+            <p className="text-xs text-[var(--text-muted)]">Run time</p>
+          </div>
+          <div className="glass-card p-4 text-center">
+            <p className="text-xl font-bold text-[#2dd4bf]">
+              {formatDurationLong(totalWalkDuration)}
+            </p>
+            <p className="text-xs text-[var(--text-muted)]">Walk time</p>
+          </div>
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="grid grid-cols-3 gap-3 mt-3">
           <div className="glass-card p-4 text-center">
             <p className="text-2xl font-bold text-[#f97316]">
               {programWorkout.intervals.filter(i => i.type === 'run').length}

@@ -142,6 +142,27 @@ function JourneyContent({ state }: JourneyProps) {
             </div>
           </motion.div>
 
+          {/* Milestones */}
+          <motion.div variants={itemVariants} className="glass-card p-4 mb-5">
+            <p className="text-caption text-[var(--text-muted)] mb-3">MILESTONE BADGES</p>
+            {completedWeeks.length === 0 ? (
+              <p className="text-sm text-[var(--text-muted)]">
+                Complete a full week to earn your first badge.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {CAMPS.filter((camp) => completedWeeks.includes(camp.week)).map((camp) => (
+                  <span
+                    key={camp.week}
+                    className="px-3 py-1 rounded-full text-xs font-semibold text-[#fbbf24] border border-[rgba(251,191,36,0.35)] bg-[rgba(251,191,36,0.12)]"
+                  >
+                    {camp.name} • Week {camp.week}
+                  </span>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
           {/* Elevation Profile Mini */}
           <motion.div variants={itemVariants} className="glass-card p-4 mb-5">
             <p className="text-caption text-[var(--text-muted)] mb-3">ELEVATION PROFILE</p>
