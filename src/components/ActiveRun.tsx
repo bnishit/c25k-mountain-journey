@@ -17,13 +17,40 @@ interface ActiveRunProps {
   onCancel: () => void
 }
 
+const ACTIVE_RUN_STORAGE_KEY = 'c25k-active-run'
+
+type ActiveRunSession = {
+  week: number
+  day: number
+  currentIntervalIndex: number
+  intervalTimeRemaining: number
+  totalElapsed: number
+  updatedAt: string
+}
+
 function ActiveRunContent({ workout, speedSettings, onComplete, onCancel }: ActiveRunProps) {
   const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [resumePrompt, setResumePrompt] = useState<string | null>(null)
+  const [hasRestoredSession, setHasRestoredSession] = useState(false)
   const audio = useAudio()
   const theme = useEnvironmentTheme(workout.week)
   const camp = getCamp(workout.week)
+
+  const [restoredSession] = useState<ActiveRunSession | null>(() => {
+    const raw = sessionStorage.getItem(ACTIVE_RUN_STORAGE_KEY)
+    if (!raw) return null
+    try {
+      const parsed = JSON.parse(raw) as ActiveRunSession
+      if (parsed.week !== workout.week || parsed.day !== workout.day) {
+        return null
+      }
+      return parsed
+    } catch {
+      return null
+    }
+  })
 
   const handleIntervalChange = useCallback((interval: Interval) => {
     audio.announceStart(interval.type)
@@ -45,11 +72,27 @@ function ActiveRunContent({ workout, speedSettings, onComplete, onCancel }: Acti
 
   const timer = useTimer({
     intervals: workout.intervals,
+    initialState: restoredSession
+      ? {
+          isRunning: true,
+          isPaused: true,
+          currentIntervalIndex: restoredSession.currentIntervalIndex,
+          intervalTimeRemaining: restoredSession.intervalTimeRemaining,
+          totalElapsed: restoredSession.totalElapsed
+        }
+      : undefined,
     onIntervalChange: handleIntervalChange,
     onCountdown: handleCountdown,
     onHalfway: handleHalfway,
     onComplete: handleComplete
   })
+
+  useEffect(() => {
+    if (restoredSession) {
+      setHasRestoredSession(true)
+      setResumePrompt('Resume your saved session')
+    }
+  }, [restoredSession])
 
   useEffect(() => {
     async function requestWakeLock() {
@@ -65,15 +108,70 @@ function ActiveRunContent({ workout, speedSettings, onComplete, onCancel }: Acti
   }, [timer.isRunning])
 
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && timer.isRunning && !timer.isPaused) {
+        timer.pause()
+        setResumePrompt('Paused while the app was in the background')
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [timer.isRunning, timer.isPaused, timer.pause])
+
+  useEffect(() => {
+    if (timer.isRunning || timer.isPaused) {
+      const session: ActiveRunSession = {
+        week: workout.week,
+        day: workout.day,
+        currentIntervalIndex: timer.currentIntervalIndex,
+        intervalTimeRemaining: timer.intervalTimeRemaining,
+        totalElapsed: timer.totalElapsed,
+        updatedAt: new Date().toISOString()
+      }
+      sessionStorage.setItem(ACTIVE_RUN_STORAGE_KEY, JSON.stringify(session))
+    } else {
+      sessionStorage.removeItem(ACTIVE_RUN_STORAGE_KEY)
+    }
+  }, [
+    timer.isRunning,
+    timer.isPaused,
+    timer.currentIntervalIndex,
+    timer.intervalTimeRemaining,
+    timer.totalElapsed,
+    workout.week,
+    workout.day
+  ])
+
+  useEffect(() => {
     if (!timer.isRunning && timer.totalElapsed > 0 && timer.intervalTimeRemaining === 0) {
+      sessionStorage.removeItem(ACTIVE_RUN_STORAGE_KEY)
       setTimeout(() => onComplete(timer.totalElapsed), 2500)
     }
   }, [timer.isRunning, timer.totalElapsed, timer.intervalTimeRemaining, onComplete])
 
+  const handleResume = () => {
+    timer.resume()
+    setResumePrompt(null)
+    setHasRestoredSession(false)
+  }
+
+  const handleRestart = () => {
+    sessionStorage.removeItem(ACTIVE_RUN_STORAGE_KEY)
+    setHasRestoredSession(false)
+    setResumePrompt(null)
+    timer.stop()
+  }
+
   const handleCancel = () => {
+    if (timer.totalElapsed > 0) {
+      const confirmEnd = confirm('End this workout? Your progress for this run will be lost.')
+      if (!confirmEnd) return
+    }
     timer.stop()
     audio.stop()
     wakeLock?.release()
+    sessionStorage.removeItem(ACTIVE_RUN_STORAGE_KEY)
     onCancel()
   }
 
@@ -249,6 +347,31 @@ function ActiveRunContent({ workout, speedSettings, onComplete, onCancel }: Acti
       </motion.div>
 
       <div className="relative flex-1 flex flex-col items-center justify-center">
+        {resumePrompt && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 w-full max-w-xs rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-left"
+          >
+            <p className="text-sm text-white/80">{resumePrompt}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                onClick={handleResume}
+                className="rounded-full bg-white/90 px-4 py-1.5 text-xs font-semibold text-slate-900"
+              >
+                Resume
+              </button>
+              {hasRestoredSession && (
+                <button
+                  onClick={handleRestart}
+                  className="rounded-full border border-white/30 px-3 py-1.5 text-xs font-semibold text-white/80"
+                >
+                  Restart
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
         {/* Interval label and remaining count */}
         <motion.div
           key={timer.currentIntervalIndex}
@@ -326,7 +449,7 @@ function ActiveRunContent({ workout, speedSettings, onComplete, onCancel }: Acti
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={timer.isPaused ? timer.resume : timer.pause}
+            onClick={timer.isPaused ? handleResume : timer.pause}
             className="w-16 h-16 rounded-full flex items-center justify-center transition-all"
             style={{
               background: timer.isPaused

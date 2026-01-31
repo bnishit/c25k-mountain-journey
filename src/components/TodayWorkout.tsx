@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { AppState, SpeedSettings } from '../types'
+import type { AppState, SpeedSettings, CompletedWorkout } from '../types'
 import { getWorkout, formatDurationLong, getIntervalLabel, C25K_PROGRAM } from '../data/program'
 import { isWorkoutCompleted } from '../utils/storage'
 import { getWorkoutsRemaining } from '../data/story'
@@ -12,6 +12,8 @@ interface TodayWorkoutProps {
   onStartRun: (speedSettings: SpeedSettings) => void
   onSettings?: () => void
   onUpdateSpeeds?: (speeds: SpeedSettings) => void
+  lastCompletedWorkout?: CompletedWorkout | null
+  onDismissSummary?: () => void
 }
 
 // Calculate next run date based on last completed workout
@@ -90,7 +92,14 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 }
 
-function TodayWorkoutContent({ state, onStartRun, onSettings, onUpdateSpeeds }: TodayWorkoutProps) {
+function TodayWorkoutContent({
+  state,
+  onStartRun,
+  onSettings,
+  onUpdateSpeeds,
+  lastCompletedWorkout,
+  onDismissSummary
+}: TodayWorkoutProps) {
   const [showIntervals, setShowIntervals] = useState(false)
   const [localSpeeds, setLocalSpeeds] = useState(state.speedSettings)
 
@@ -100,6 +109,15 @@ function TodayWorkoutContent({ state, onStartRun, onSettings, onUpdateSpeeds }: 
   const totalWorkouts = C25K_PROGRAM.length
   const isProgramComplete = totalCompleted >= totalWorkouts
   const nextRunDate = calculateNextRunDate(state.completedWorkouts)
+
+  const getSuggestedRunRange = (week: number) => {
+    if (week <= 2) return { min: 6.0, max: 8.0 }
+    if (week <= 5) return { min: 7.0, max: 9.0 }
+    if (week <= 7) return { min: 8.0, max: 10.0 }
+    return { min: 9.0, max: 11.0 }
+  }
+
+  const suggestedRange = getSuggestedRunRange(state.currentWeek)
 
   // Calculate completed weeks for the scene
   const completedWeeks = useMemo(() => {
@@ -318,6 +336,30 @@ function TodayWorkoutContent({ state, onStartRun, onSettings, onUpdateSpeeds }: 
           </motion.div>
         )}
 
+        {lastCompletedWorkout && (
+          <motion.div variants={itemVariants} className="glass-card-elevated p-4 mb-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-caption text-[var(--text-muted)]">Nice work</p>
+                <p className="text-heading text-lg">
+                  Week {lastCompletedWorkout.week} · Day {lastCompletedWorkout.day} completed
+                </p>
+                <p className="text-sm text-[var(--text-tertiary)] mt-1">
+                  {formatDurationLong(lastCompletedWorkout.actualDuration)} · next trek {nextRunDate ? formatNextRunDate(nextRunDate) : 'soon'}
+                </p>
+              </div>
+              {onDismissSummary && (
+                <button
+                  onClick={onDismissSummary}
+                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                >
+                  Dismiss
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         {/* Quick Stats Row */}
         <motion.div variants={itemVariants} className="flex items-center gap-3 mb-4">
           <div className="glass-card px-4 py-3 flex items-center gap-2">
@@ -381,6 +423,12 @@ function TodayWorkoutContent({ state, onStartRun, onSettings, onUpdateSpeeds }: 
                 </button>
               </div>
             </div>
+          </div>
+          <div className="mt-4 rounded-xl border border-[rgba(249,115,22,0.25)] bg-[rgba(249,115,22,0.08)] px-3 py-2">
+            <p className="text-xs text-[var(--text-muted)]">Suggested run range for week {state.currentWeek}</p>
+            <p className="text-sm font-semibold text-[#f97316]">
+              {suggestedRange.min.toFixed(1)}–{suggestedRange.max.toFixed(1)} km/h
+            </p>
           </div>
         </motion.div>
 
