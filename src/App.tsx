@@ -28,6 +28,7 @@ function App() {
   const [view, setView] = useState<View>('today')
   const [selectedWorkout, setSelectedWorkout] = useState<CompletedWorkout | null>(null)
   const [runSpeedSettings, setRunSpeedSettings] = useState<SpeedSettings | null>(null)
+  const [lastCompletedWorkout, setLastCompletedWorkout] = useState<CompletedWorkout | null>(null)
   const { state, completeWorkout, resetProgress, updateSpeeds } = useProgress()
 
   const currentWorkout = getWorkout(state.currentWeek, state.currentDay)
@@ -38,6 +39,12 @@ function App() {
   }, [])
 
   const handleCompleteRun = useCallback((duration: number) => {
+    setLastCompletedWorkout({
+      week: state.currentWeek,
+      day: state.currentDay,
+      completedAt: new Date().toISOString(),
+      actualDuration: duration
+    })
     completeWorkout(state.currentWeek, state.currentDay, duration)
     setView('today')
   }, [state.currentWeek, state.currentDay, completeWorkout])
@@ -77,6 +84,8 @@ function App() {
               onStartRun={handleStartRun}
               onSettings={() => setView('settings')}
               onUpdateSpeeds={updateSpeeds}
+              lastCompletedWorkout={lastCompletedWorkout}
+              onDismissSummary={() => setLastCompletedWorkout(null)}
             />
           </motion.div>
         )}

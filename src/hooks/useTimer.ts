@@ -11,6 +11,7 @@ interface TimerState {
 
 interface UseTimerProps {
   intervals: Interval[]
+  initialState?: Partial<TimerState>
   onIntervalChange?: (interval: Interval, index: number) => void
   onCountdown?: (seconds: number) => void
   onHalfway?: () => void
@@ -19,17 +20,24 @@ interface UseTimerProps {
 
 export function useTimer({
   intervals,
+  initialState,
   onIntervalChange,
   onCountdown,
   onHalfway,
   onComplete
 }: UseTimerProps) {
+  const initialIntervalIndex = Math.min(
+    Math.max(initialState?.currentIntervalIndex ?? 0, 0),
+    Math.max(intervals.length - 1, 0)
+  )
+  const initialIntervalRemaining =
+    initialState?.intervalTimeRemaining ?? intervals[initialIntervalIndex]?.duration ?? 0
   const [state, setState] = useState<TimerState>({
-    isRunning: false,
-    isPaused: false,
-    currentIntervalIndex: 0,
-    intervalTimeRemaining: intervals[0]?.duration ?? 0,
-    totalElapsed: 0
+    isRunning: initialState?.isRunning ?? false,
+    isPaused: initialState?.isPaused ?? false,
+    currentIntervalIndex: initialIntervalIndex,
+    intervalTimeRemaining: initialIntervalRemaining,
+    totalElapsed: initialState?.totalElapsed ?? 0
   })
 
   const timerRef = useRef<number | null>(null)
