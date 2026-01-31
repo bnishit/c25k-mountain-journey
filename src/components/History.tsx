@@ -29,6 +29,39 @@ export function History({ state, onReset, onSelectWorkout }: HistoryProps) {
   )
 
   const totalTime = completedWorkouts.reduce((sum, w) => sum + w.actualDuration, 0)
+  const averageDuration = completedWorkouts.length > 0 ? totalTime / completedWorkouts.length : 0
+
+  const completedWeeks = Array.from(
+    new Set(completedWorkouts.map((workout) => workout.week))
+  )
+  const totalPossibleInStartedWeeks = completedWeeks.length * 3
+  const weeklyCompletionRate = totalPossibleInStartedWeeks > 0
+    ? Math.round((completedWorkouts.length / totalPossibleInStartedWeeks) * 100)
+    : 0
+
+  const workoutDates = Array.from(
+    new Set(
+      completedWorkouts.map((workout) => new Date(workout.completedAt).toDateString())
+    )
+  )
+  const sortedDates = workoutDates
+    .map((dateString) => new Date(dateString))
+    .sort((a, b) => a.getTime() - b.getTime())
+
+  const currentStreak = (() => {
+    if (sortedDates.length === 0) return 0
+    let streak = 1
+    for (let i = sortedDates.length - 1; i > 0; i -= 1) {
+      const diffMs = sortedDates[i].getTime() - sortedDates[i - 1].getTime()
+      const diffDays = diffMs / (1000 * 60 * 60 * 24)
+      if (diffDays <= 1.1) {
+        streak += 1
+      } else {
+        break
+      }
+    }
+    return streak
+  })()
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString)
@@ -65,6 +98,27 @@ export function History({ state, onReset, onSelectWorkout }: HistoryProps) {
               {formatDurationLong(totalTime)}
             </p>
             <p className="text-caption text-[var(--text-muted)]">Total Time</p>
+          </div>
+        </motion.div>
+
+        {/* Progress insights */}
+        <motion.div variants={itemVariants} className="glass-card p-5 mb-8">
+          <p className="text-caption text-[var(--text-muted)] mb-4">PROGRESS INSIGHTS</p>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="text-2xl font-bold text-[#f97316]">{currentStreak}</p>
+              <p className="text-xs text-[var(--text-muted)]">Day streak</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-[#2dd4bf]">{weeklyCompletionRate}%</p>
+              <p className="text-xs text-[var(--text-muted)]">Weekly rate</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-[var(--text-secondary)]">
+                {averageDuration ? formatDurationLong(averageDuration) : '—'}
+              </p>
+              <p className="text-xs text-[var(--text-muted)]">Avg duration</p>
+            </div>
           </div>
         </motion.div>
 
